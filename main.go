@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -16,6 +17,7 @@ func main() {
 	}
 	http.HandleFunc("/lookup/", redirect)
 	log.Println("Server started on port 3000")
+	fmt.Println("POST /lookup/?url=YOUR_STRING_HERE")
 	http.ListenAndServe(":3000", nil)
 }
 
