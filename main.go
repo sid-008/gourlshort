@@ -1,12 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
-	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func init() {
@@ -32,42 +31,57 @@ func main() {
 		"twitter": "http://twitter.com",
 		"yahoo":   "http://yahoo.com",
 	}
-	http.HandleFunc("/lookup/", redirect)
-	http.HandleFunc("/add/", addlink)
-	log.Println("Server started on port 3000")
-	fmt.Println("POST /lookup/?url=YOUR_STRING_HERE")
-	fmt.Println("POST /add/?url=YOUR_STRING_HERE")
-	//str := RandString()
-	//fmt.Println(str)
-	err := http.ListenAndServe(":3000", nil)
+
+	r := gin.Default()
+
+	r.GET("/helth", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "All good!",
+		})
+	})
+
+	r.GET("/:short", redirect)
+
+	r.POST("/addlink/:url", addlink)
+
+	err := r.Run(":3000")
 	if err != nil {
 		log.Fatal(err)
 	}
+	//http.HandleFunc("/lookup/:url", redirect)
+	//http.HandleFunc("/add/", addlink)
+	//log.Println("Server started on port 3000")
+	//fmt.Println("GET /lookup/?url=YOUR_STRING_HERE")
+	//fmt.Println("POST /add/?url=YOUR_STRING_HERE")
+	//str := RandString()
+	//fmt.Println(str)
+	//	err := http.ListenAndServe(":3000", nil)
+	//	if err != nil {
+	//		log.Fatal(err)
+	//}
 }
 
-func addlink(w http.ResponseWriter, r *http.Request) {
-	req := r.URL.Query().Get("url")
+func addlink(c *gin.Context) {
+	url := c.Param("url")
 	short := RandString()
-	var req2 string
-	if !strings.HasPrefix(req, "http://") {
+	/*if !strings.HasPrefix(req, "http://") {
 		req2 = "http://" + req
-	}
-	store[short] = req2
-	log.Println(req)
+	}*/
+	store[short] = url
+	log.Println(url)
 	log.Println(short)
-
+	log.Println(store)
+	c.JSON(200, url)
 }
 
-func redirect(w http.ResponseWriter, r *http.Request) {
+func redirect(c *gin.Context) {
 	log.Println("store:", store)
-	req := r.URL.Query().Get("url")
-	//res := strings.Split(path, "/")
+	req := c.Param("short")
+
 	for key, value := range store {
 		if key == req {
-			http.Redirect(w, r, value, 307)
+			c.Redirect(301, value)
 		}
 	}
 	log.Println(req)
-
-	//http.Redirect(w, r, "http://google.com", 307)
 }
