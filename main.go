@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -26,6 +27,11 @@ var (
 	store map[string]string
 )
 
+type UrlStruct struct { // NOTE: struct fields must start with upper case for json package to see its value
+	Url   string //`json:"url"`
+	Short string //`json:"short"`
+}
+
 func main() {
 	store = map[string]string{
 		"twitter": "http://twitter.com",
@@ -40,48 +46,32 @@ func main() {
 		})
 	})
 
-	r.GET("/:short", redirect)
+	r.GET("/view", func(c *gin.Context) {
+		c.JSON(200, store)
+	})
 
-	r.POST("/addlink/:url", addlink)
+	r.GET("/:short", func(c *gin.Context) {
+		req := c.Param("short")
+		log.Println("Store:", store)
+
+		for key, value := range store {
+			if key == req {
+				c.Redirect(301, value)
+			}
+		}
+		log.Println(req)
+	})
+
+	r.POST("/addlink", func(c *gin.Context) {
+		var reqBody UrlStruct
+		if err := c.BindJSON(&reqBody); err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(reqBody.Url)
+	})
 
 	err := r.Run(":3000")
 	if err != nil {
 		log.Fatal(err)
 	}
-	//http.HandleFunc("/lookup/:url", redirect)
-	//http.HandleFunc("/add/", addlink)
-	//log.Println("Server started on port 3000")
-	//fmt.Println("GET /lookup/?url=YOUR_STRING_HERE")
-	//fmt.Println("POST /add/?url=YOUR_STRING_HERE")
-	//str := RandString()
-	//fmt.Println(str)
-	//	err := http.ListenAndServe(":3000", nil)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//}
-}
-
-func addlink(c *gin.Context) {
-	url := c.Param("url")
-	short := RandString()
-	/*if !strings.HasPrefix(req, "http://") {
-		req2 = "http://" + req
-	}*/
-	store[short] = url
-	log.Println(url)
-	log.Println(short)
-	log.Println(store)
-	c.JSON(200, url)
-}
-
-func redirect(c *gin.Context) {
-	log.Println("store:", store)
-	req := c.Param("short")
-
-	for key, value := range store {
-		if key == req {
-			c.Redirect(301, value)
-		}
-	}
-	log.Println(req)
 }
