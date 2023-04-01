@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -40,9 +41,9 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/helth", func(c *gin.Context) {
+	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "All good!",
+			"message": "pong",
 		})
 	})
 
@@ -67,7 +68,14 @@ func main() {
 		if err := c.BindJSON(&reqBody); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(reqBody.Url)
+		requrl := reqBody.Url
+		if !strings.HasPrefix(requrl, "http://") {
+			requrl = "http://" + requrl
+		}
+		short := RandString()
+		store[short] = requrl
+		fmt.Println(short)
+
 	})
 
 	err := r.Run(":3000")
