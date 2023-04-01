@@ -52,18 +52,13 @@ func main() {
 	})
 
 	r.GET("/:short", func(c *gin.Context) {
+		//TODO error handling for invalid links. Returns 404 for now which is also fine
 		req := c.Param("short")
-		log.Println("Store:", store)
-
-		for key, value := range store {
-			if key == req {
-				c.Redirect(301, value)
-			}
-		}
-		log.Println(req)
+		c.Redirect(301, store[req])
 	})
 
 	r.POST("/addlink", func(c *gin.Context) {
+		//TODO check for duplicates
 		var reqBody UrlStruct
 		if err := c.BindJSON(&reqBody); err != nil {
 			log.Fatal(err)
